@@ -1,0 +1,837 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Конкурентный анализ | Котокод</title>
+<style>
+  :root {
+    --bg: #0f0f13;
+    --surface: #1a1a24;
+    --surface2: #22222f;
+    --border: #2a2a3a;
+    --text: #e4e4ec;
+    --text2: #9494a8;
+    --accent: #7c6cf0;
+    --accent2: #a78bfa;
+    --green: #34d399;
+    --red: #f87171;
+    --orange: #fbbf24;
+    --blue: #60a5fa;
+    --pink: #f472b6;
+  }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  body {
+    font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    line-height: 1.6;
+    -webkit-font-smoothing: antialiased;
+  }
+
+  .container { max-width: 1200px; margin: 0 auto; padding: 0 24px; }
+
+  /* ── HERO ── */
+  .hero {
+    padding: 80px 0 60px;
+    text-align: center;
+    background: linear-gradient(180deg, #1a1028 0%, var(--bg) 100%);
+  }
+  .hero-badge {
+    display: inline-block;
+    padding: 6px 16px;
+    background: rgba(124,108,240,0.15);
+    border: 1px solid rgba(124,108,240,0.3);
+    border-radius: 20px;
+    font-size: 13px;
+    color: var(--accent2);
+    margin-bottom: 24px;
+  }
+  .hero h1 {
+    font-size: 42px;
+    font-weight: 700;
+    line-height: 1.2;
+    margin-bottom: 16px;
+    background: linear-gradient(135deg, #fff 0%, var(--accent2) 100%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+  }
+  .hero p { font-size: 18px; color: var(--text2); max-width: 640px; margin: 0 auto; }
+
+  /* ── SECTION ── */
+  section { padding: 60px 0; }
+  .section-title {
+    font-size: 28px;
+    font-weight: 700;
+    margin-bottom: 12px;
+  }
+  .section-sub {
+    font-size: 15px;
+    color: var(--text2);
+    margin-bottom: 40px;
+  }
+
+  /* ── SUMMARY TABLE ── */
+  .table-wrap {
+    overflow-x: auto;
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    background: var(--surface);
+  }
+  table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 13px;
+    white-space: nowrap;
+  }
+  th {
+    background: var(--surface2);
+    padding: 12px 16px;
+    text-align: left;
+    font-weight: 600;
+    color: var(--accent2);
+    border-bottom: 1px solid var(--border);
+    position: sticky;
+    top: 0;
+  }
+  td {
+    padding: 10px 16px;
+    border-bottom: 1px solid var(--border);
+    color: var(--text);
+  }
+  tr:last-child td { border-bottom: none; }
+  tr:hover td { background: rgba(124,108,240,0.04); }
+  .badge-yes {
+    display: inline-block;
+    padding: 2px 10px;
+    background: rgba(52,211,153,0.15);
+    color: var(--green);
+    border-radius: 10px;
+    font-size: 11px;
+    font-weight: 600;
+  }
+  .school-name { font-weight: 600; color: #fff; }
+
+  /* ── COMPETITOR CARDS ── */
+  .cards-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(360px, 1fr));
+    gap: 20px;
+  }
+  .card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 14px;
+    padding: 28px;
+    transition: border-color 0.2s;
+  }
+  .card:hover { border-color: var(--accent); }
+  .card-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    margin-bottom: 20px;
+  }
+  .card-header h3 {
+    font-size: 20px;
+    font-weight: 700;
+    color: #fff;
+  }
+  .card-header .age-badge {
+    padding: 4px 12px;
+    background: rgba(124,108,240,0.15);
+    color: var(--accent2);
+    border-radius: 8px;
+    font-size: 12px;
+    font-weight: 600;
+    white-space: nowrap;
+  }
+  .card-scale {
+    font-size: 13px;
+    color: var(--text2);
+    margin-bottom: 16px;
+  }
+  .card-section { margin-bottom: 16px; }
+  .card-section-title {
+    font-size: 11px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.8px;
+    color: var(--text2);
+    margin-bottom: 6px;
+  }
+  .card-section p, .card-section li {
+    font-size: 13px;
+    color: var(--text);
+    line-height: 1.6;
+  }
+  .card-section ul { padding-left: 16px; }
+  .card-section li { margin-bottom: 2px; }
+  .cta-tag {
+    display: inline-block;
+    padding: 4px 12px;
+    background: rgba(251,191,36,0.12);
+    color: var(--orange);
+    border-radius: 8px;
+    font-size: 12px;
+    font-weight: 600;
+    margin-right: 6px;
+    margin-bottom: 4px;
+  }
+  .usp-tag {
+    display: inline-block;
+    padding: 4px 12px;
+    background: rgba(96,165,250,0.12);
+    color: var(--blue);
+    border-radius: 8px;
+    font-size: 12px;
+    font-weight: 500;
+    margin-right: 6px;
+    margin-bottom: 4px;
+  }
+  .price-tag {
+    display: inline-block;
+    padding: 4px 12px;
+    background: rgba(52,211,153,0.12);
+    color: var(--green);
+    border-radius: 8px;
+    font-size: 12px;
+    font-weight: 600;
+  }
+
+  /* ── PATTERNS ── */
+  .patterns-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(340px, 1fr));
+    gap: 20px;
+  }
+  .pattern-card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 14px;
+    padding: 28px;
+  }
+  .pattern-card .icon {
+    width: 40px;
+    height: 40px;
+    border-radius: 10px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 20px;
+    margin-bottom: 16px;
+  }
+  .pattern-card h3 {
+    font-size: 16px;
+    font-weight: 700;
+    margin-bottom: 10px;
+    color: #fff;
+  }
+  .pattern-card p {
+    font-size: 13px;
+    color: var(--text2);
+    line-height: 1.7;
+  }
+  .highlight {
+    color: #fff;
+    font-weight: 600;
+  }
+
+  /* ── RECOMMENDATIONS ── */
+  .recs { counter-reset: rec; }
+  .rec-item {
+    display: flex;
+    gap: 20px;
+    padding: 24px;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 14px;
+    margin-bottom: 16px;
+    transition: border-color 0.2s;
+  }
+  .rec-item:hover { border-color: var(--accent); }
+  .rec-num {
+    flex-shrink: 0;
+    width: 36px;
+    height: 36px;
+    border-radius: 10px;
+    background: rgba(124,108,240,0.15);
+    color: var(--accent2);
+    font-weight: 700;
+    font-size: 14px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+  .rec-content h4 {
+    font-size: 15px;
+    font-weight: 700;
+    color: #fff;
+    margin-bottom: 6px;
+  }
+  .rec-content p {
+    font-size: 13px;
+    color: var(--text2);
+    line-height: 1.7;
+  }
+  .rec-category {
+    display: inline-block;
+    padding: 3px 10px;
+    border-radius: 6px;
+    font-size: 11px;
+    font-weight: 600;
+    margin-bottom: 8px;
+  }
+  .cat-funnel { background: rgba(248,113,113,0.12); color: var(--red); }
+  .cat-landing { background: rgba(251,191,36,0.12); color: var(--orange); }
+  .cat-product { background: rgba(52,211,153,0.12); color: var(--green); }
+
+  /* ── CONVERSION TABLE ── */
+  .conv-table {
+    margin-top: 40px;
+    border: 1px solid var(--border);
+    border-radius: 14px;
+    overflow: hidden;
+    background: var(--surface);
+  }
+  .conv-table table { white-space: normal; }
+  .conv-table th { background: rgba(124,108,240,0.1); color: var(--accent2); }
+  .conv-current { color: var(--red); font-weight: 700; font-size: 18px; }
+  .conv-target { color: var(--green); font-weight: 700; font-size: 18px; }
+  .conv-arrow { color: var(--text2); font-size: 18px; padding: 0 4px; }
+
+  /* ── FOOTER ── */
+  .footer {
+    padding: 40px 0;
+    text-align: center;
+    color: var(--text2);
+    font-size: 13px;
+    border-top: 1px solid var(--border);
+  }
+  .footer a { color: var(--accent2); text-decoration: none; }
+
+  /* ── STATS BAR ── */
+  .stats-bar {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 16px;
+    margin: 40px 0;
+  }
+  .stat-item {
+    text-align: center;
+    padding: 24px 16px;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+  }
+  .stat-num {
+    font-size: 32px;
+    font-weight: 800;
+    color: var(--accent2);
+    line-height: 1;
+    margin-bottom: 6px;
+  }
+  .stat-label {
+    font-size: 13px;
+    color: var(--text2);
+  }
+
+  @media (max-width: 768px) {
+    .hero h1 { font-size: 28px; }
+    .cards-grid, .patterns-grid { grid-template-columns: 1fr; }
+    .stats-bar { grid-template-columns: repeat(2, 1fr); }
+  }
+</style>
+</head>
+<body>
+
+<!-- ═══════════ HERO ═══════════ -->
+<div class="hero">
+  <div class="container">
+    <div class="hero-badge">uForce | Influence & Performance</div>
+    <h1>Конкурентный анализ<br>онлайн-школ программирования<br>для детей</h1>
+    <p>Анализ продуктовых воронок и упаковки лендингов для обоснования роста конверсий Котокода</p>
+  </div>
+</div>
+
+<!-- ═══════════ STATS ═══════════ -->
+<div class="container">
+  <div class="stats-bar">
+    <div class="stat-item">
+      <div class="stat-num">10</div>
+      <div class="stat-label">школ проанализировано</div>
+    </div>
+    <div class="stat-item">
+      <div class="stat-num">100%</div>
+      <div class="stat-label">предлагают бесплатное пробное</div>
+    </div>
+    <div class="stat-item">
+      <div class="stat-num">8/10</div>
+      <div class="stat-label">CTA = «Бесплатный урок»</div>
+    </div>
+    <div class="stat-item">
+      <div class="stat-num">80%</div>
+      <div class="stat-label">скрывают цены на лендинге</div>
+    </div>
+  </div>
+</div>
+
+<!-- ═══════════ SUMMARY TABLE ═══════════ -->
+<section>
+  <div class="container">
+    <h2 class="section-title">Сводная таблица</h2>
+    <p class="section-sub">Ключевые параметры лендингов и продуктов конкурентов</p>
+    <div class="table-wrap">
+      <table>
+        <thead>
+          <tr>
+            <th>Школа</th>
+            <th>Возраст</th>
+            <th>Формат</th>
+            <th>Пробное</th>
+            <th>Главный CTA</th>
+            <th>Форма</th>
+            <th>Цена</th>
+            <th>Ключевой месседж</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr><td class="school-name">Алгоритмика</td><td>6–18</td><td>Группы + индивид.</td><td><span class="badge-yes">Да</span></td><td>Попробовать бесплатно</td><td>Имя + тел + email</td><td>Скрыта</td><td>Суперсила для суперзавтра</td></tr>
+          <tr><td class="school-name">Kodland</td><td>8–17</td><td>Онлайн, индивид.</td><td><span class="badge-yes">Да</span></td><td>Free lesson</td><td>Регистрация</td><td>Скрыта</td><td>Международная школа</td></tr>
+          <tr><td class="school-name">GeekSchool</td><td>8–16</td><td>Группы онлайн (12 чел.)</td><td><span class="badge-yes">Да</span></td><td>Бесплатный урок</td><td>Телефон</td><td>от 7 635 &#8381;</td><td>Скидки до 65%</td></tr>
+          <tr><td class="school-name">PIXEL</td><td>5–17</td><td>5 форматов</td><td><span class="badge-yes">Да</span></td><td>Попробовать бесплатно</td><td>Телефон</td><td>Скрыта</td><td>Международная, с 2017</td></tr>
+          <tr><td class="school-name">Coddy</td><td>4–16</td><td>Онлайн + офлайн</td><td><span class="badge-yes">Да</span></td><td>Записаться</td><td>Телефон</td><td>Скрыта</td><td>100+ курсов, Microsoft</td></tr>
+          <tr><td class="school-name">Учи.ру</td><td>7–16</td><td>Группы (10 чел.)</td><td><span class="badge-yes">Да</span></td><td>Записаться</td><td>Город + тел</td><td>Скрыта</td><td>Задания от Microsoft, Google</td></tr>
+          <tr><td class="school-name">Hello World</td><td>6–17</td><td>Онлайн</td><td><span class="badge-yes">Да</span></td><td>Позвоните мне</td><td>Телефон</td><td>Скрыта</td><td>Первая онлайн-лицензия</td></tr>
+          <tr><td class="school-name">KIBERone</td><td>6–14</td><td>Очные, 2 часа/нед</td><td><span class="badge-yes">Да</span></td><td>Попробовать бесплатно</td><td>Телефон</td><td>7 800 &#8381;/мес</td><td>Кого ИИ не заменит</td></tr>
+          <tr><td class="school-name">EasyCode</td><td>7–17</td><td>Онлайн</td><td><span class="badge-yes">Да</span></td><td>Пробный урок</td><td>Телефон</td><td>Скрыта</td><td>Проект на 1-м занятии</td></tr>
+          <tr><td class="school-name">Айтигенио</td><td>5–17</td><td>Индивид., 24/7</td><td><span class="badge-yes">Да</span></td><td>Бесплатный урок</td><td>Телефон</td><td>Пакетная</td><td>Школа нового поколения</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+</section>
+
+<!-- ═══════════ COMPETITOR CARDS ═══════════ -->
+<section>
+  <div class="container">
+    <h2 class="section-title">Детальный анализ конкурентов</h2>
+    <p class="section-sub">Продукт, упаковка, CTA, социальные доказательства и позиционирование</p>
+    <div class="cards-grid">
+
+      <!-- Алгоритмика -->
+      <div class="card">
+        <div class="card-header">
+          <h3>Алгоритмика</h3>
+          <span class="age-badge">6–18 лет</span>
+        </div>
+        <div class="card-scale">1.1М выпускников &middot; 515 партнёров &middot; 90 стран</div>
+        <div class="card-section">
+          <div class="card-section-title">Продукт</div>
+          <p>Scratch, Python, Unity, Frontend, ИИ, веб, Roblox + Математика + Дизайн + ЕГЭ. Группы до 12 чел. и индивид. Онлайн + 500+ офлайн-филиалов. Занятие 1.5 ч.</p>
+        </div>
+        <div class="card-section">
+          <div class="card-section-title">Упаковка</div>
+          <p>Платформа «3 в 1»: умный учебник + лаборатория проектов + сообщество. Методика: увлечь → вдохновить → не перегрузить.</p>
+        </div>
+        <div class="card-section">
+          <span class="cta-tag">Попробовать бесплатно</span>
+          <span class="usp-tag">Рейтинг Skolkovo</span>
+          <span class="usp-tag">Собственная платформа</span>
+        </div>
+      </div>
+
+      <!-- Kodland -->
+      <div class="card">
+        <div class="card-header">
+          <h3>Kodland</h3>
+          <span class="age-badge">8–17 лет</span>
+        </div>
+        <div class="card-scale">200 000+ учеников &middot; Международная</div>
+        <div class="card-section">
+          <div class="card-section-title">Продукт</div>
+          <p>Coding + Design + Drawing + Math. Онлайн, интерактивные уроки + проекты. Мультиязычный сайт.</p>
+        </div>
+        <div class="card-section">
+          <div class="card-section-title">Упаковка</div>
+          <p>Современный UI: возрастные группы, flip-карточки преподавателей, галерея работ студентов, видеоотзывы.</p>
+        </div>
+        <div class="card-section">
+          <span class="cta-tag">Free lesson</span>
+          <span class="usp-tag">Trustpilot</span>
+          <span class="usp-tag">Галерея работ</span>
+        </div>
+      </div>
+
+      <!-- GeekSchool -->
+      <div class="card">
+        <div class="card-header">
+          <h3>GeekSchool</h3>
+          <span class="age-badge">8–16 лет</span>
+        </div>
+        <div class="card-scale">1.2М студентов &middot; 495 городов &middot; GeekBrains</div>
+        <div class="card-section">
+          <div class="card-section-title">Продукт</div>
+          <p>Scratch, Python, Minecraft, Unity, веб, дизайн, анимация, 3D-Blender. Группы до 12 чел. 5–10 проектов за курс.</p>
+        </div>
+        <div class="card-section">
+          <div class="card-section-title">Упаковка</div>
+          <p>Единственные с <span class="highlight">открытыми ценами</span>. Агрессивные скидки (до 65%). Маткапитал + налоговый вычет 13%.</p>
+        </div>
+        <div class="card-section">
+          <span class="cta-tag">Бесплатный пробный урок</span>
+          <span class="price-tag">от 7 635 &#8381;</span>
+          <span class="usp-tag">Сбербанк, ВК, Газпром</span>
+        </div>
+      </div>
+
+      <!-- PIXEL -->
+      <div class="card">
+        <div class="card-header">
+          <h3>PIXEL</h3>
+          <span class="age-badge">5–17 лет</span>
+        </div>
+        <div class="card-scale">6 000+ учеников &middot; 100+ преподавателей &middot; с 2017</div>
+        <div class="card-section">
+          <div class="card-section-title">Продукт</div>
+          <p>20+ курсов: программирование, игры, ИИ, сайты, дизайн. 5 форматов: индивид., группы, лагерь, видеоуроки, очные.</p>
+        </div>
+        <div class="card-section">
+          <div class="card-section-title">Упаковка</div>
+          <p>Максимальное разнообразие форматов. Франшизная модель. Мультивалютность (&#8381;, &#8376;, $).</p>
+        </div>
+        <div class="card-section">
+          <span class="cta-tag">Попробовать бесплатно</span>
+          <span class="usp-tag">5 форматов обучения</span>
+          <span class="usp-tag">Франшиза</span>
+        </div>
+      </div>
+
+      <!-- Coddy -->
+      <div class="card">
+        <div class="card-header">
+          <h3>Coddy</h3>
+          <span class="age-badge">4–16 лет</span>
+        </div>
+        <div class="card-scale">24 страны &middot; 100+ курсов &middot; Microsoft</div>
+        <div class="card-section">
+          <div class="card-section-title">Продукт</div>
+          <p>100+ курсов: программирование, дизайн, кибербезопасность. Онлайн + офлайн. Самый низкий порог входа — 4 года.</p>
+        </div>
+        <div class="card-section">
+          <div class="card-section-title">Упаковка</div>
+          <p>Coddy TV (видеоконтент), раздел наград, шеринг отзывов в ВК. Детский визуал.</p>
+        </div>
+        <div class="card-section">
+          <span class="cta-tag">Записаться</span>
+          <span class="usp-tag">Аккредитация Microsoft</span>
+          <span class="usp-tag">100+ курсов</span>
+        </div>
+      </div>
+
+      <!-- Учи.ру -->
+      <div class="card">
+        <div class="card-header">
+          <h3>Учи.ру</h3>
+          <span class="age-badge">7–16 лет</span>
+        </div>
+        <div class="card-scale">Крупнейшая образовательная платформа РФ</div>
+        <div class="card-section">
+          <div class="card-section-title">Продукт</div>
+          <p>Кружок программирования. Группы до 10 чел., 90 мин/нед, 32 занятия. Персональный проект + сертификат.</p>
+        </div>
+        <div class="card-section">
+          <div class="card-section-title">Упаковка</div>
+          <p>Зонтик бренда Учи.ру. «Задания от разработчиков Microsoft, Яндекс, Google». Лаконичный дизайн.</p>
+        </div>
+        <div class="card-section">
+          <span class="cta-tag">Записаться</span>
+          <span class="usp-tag">Microsoft, Яндекс, Google</span>
+        </div>
+      </div>
+
+      <!-- Hello World -->
+      <div class="card">
+        <div class="card-header">
+          <h3>Hello World</h3>
+          <span class="age-badge">6–17 лет</span>
+        </div>
+        <div class="card-scale">37 стран &middot; 350+ педагогов</div>
+        <div class="card-section">
+          <div class="card-section-title">Продукт</div>
+          <p>Программирование + развитие + репетиторы + дизайн. Онлайн. Первая в РФ с онлайн-лицензией на детское IT.</p>
+        </div>
+        <div class="card-section">
+          <div class="card-section-title">Упаковка</div>
+          <p>Минималистичный SPA-лендинг. Обратный звонок через Telegram/WhatsApp. Репетиторы как расширение LTV.</p>
+        </div>
+        <div class="card-section">
+          <span class="cta-tag">Позвоните мне</span>
+          <span class="usp-tag">Онлайн-лицензия</span>
+        </div>
+      </div>
+
+      <!-- KIBERone -->
+      <div class="card">
+        <div class="card-header">
+          <h3>KIBERone</h3>
+          <span class="age-badge">6–14 лет</span>
+        </div>
+        <div class="card-scale">540 городов &middot; 36 стран &middot; 6 000 преподавателей</div>
+        <div class="card-section">
+          <div class="card-section-title">Продукт</div>
+          <p>50+ модулей: Scratch → Python → C++ → Java → JS, ИИ, 3D, дизайн. Очные, 1 р/нед, 2 часа. Модульная система.</p>
+        </div>
+        <div class="card-section">
+          <div class="card-section-title">Упаковка</div>
+          <p><span class="highlight">«Учим быть теми, кого ИИ не заменит»</span>. Награды ЮНЕСКО, Microsoft, ЕС. Баллы к ЕГЭ. Мерч.</p>
+        </div>
+        <div class="card-section">
+          <span class="cta-tag">Попробовать бесплатно</span>
+          <span class="price-tag">7 800 &#8381;/мес</span>
+          <span class="usp-tag">ЮНЕСКО</span>
+        </div>
+      </div>
+
+      <!-- EasyCode -->
+      <div class="card">
+        <div class="card-header">
+          <h3>EasyCode</h3>
+          <span class="age-badge">7–17 лет</span>
+        </div>
+        <div class="card-scale">10 000+ учеников &middot; 300+ преподавателей &middot; 12 стран</div>
+        <div class="card-section">
+          <div class="card-section-title">Продукт</div>
+          <p>ИИ, игры, Python, Frontend, Python+нейросети. Онлайн. #1 Smart Ranking среди быстрорастущих tech-компаний.</p>
+        </div>
+        <div class="card-section">
+          <div class="card-section-title">Упаковка</div>
+          <p><span class="highlight">«Создадим проект на первом занятии!»</span> — моментальный результат как ключевое обещание.</p>
+        </div>
+        <div class="card-section">
+          <span class="cta-tag">Пробный урок</span>
+          <span class="usp-tag">Smart Ranking #1</span>
+          <span class="usp-tag">Нейросети/ИИ</span>
+        </div>
+      </div>
+
+      <!-- Айтигенио -->
+      <div class="card">
+        <div class="card-header">
+          <h3>Айтигенио</h3>
+          <span class="age-badge">5–17 лет</span>
+        </div>
+        <div class="card-scale">19 000+ учеников &middot; Рейтинг 4.9/5</div>
+        <div class="card-section">
+          <div class="card-section-title">Продукт</div>
+          <p>Программирование, графика, анимация, 3D, школьные предметы, языки. Полностью индивидуальный формат, 24/7.</p>
+        </div>
+        <div class="card-section">
+          <div class="card-section-title">Упаковка</div>
+          <p>Пакетная модель: больше занятий = дешевле. Самостоятельная запись через ЛК. Максимальная гибкость графика.</p>
+        </div>
+        <div class="card-section">
+          <span class="cta-tag">Бесплатный урок</span>
+          <span class="usp-tag">Индивидуально 24/7</span>
+          <span class="usp-tag">Пакетная модель</span>
+        </div>
+      </div>
+
+    </div>
+  </div>
+</section>
+
+<!-- ═══════════ PATTERNS ═══════════ -->
+<section>
+  <div class="container">
+    <h2 class="section-title">Ключевые паттерны рынка</h2>
+    <p class="section-sub">Что объединяет лидеров и чем Котокод может выделиться</p>
+    <div class="patterns-grid">
+
+      <div class="pattern-card">
+        <div class="icon" style="background: rgba(52,211,153,0.12);">&#9989;</div>
+        <h3>Бесплатное пробное — стандарт</h3>
+        <p><span class="highlight">100% школ</span> предлагают бесплатное пробное занятие. Это абсолютный стандарт рынка. Если у Котокода оно плохо упаковано — прямая причина низкой конверсии в пробное (20% vs бенчмарк 60–70%).</p>
+      </div>
+
+      <div class="pattern-card">
+        <div class="icon" style="background: rgba(251,191,36,0.12);">&#128073;</div>
+        <h3>CTA = «Бесплатный урок»</h3>
+        <p>Доминирующий CTA у <span class="highlight">8 из 10 школ</span>. Минимальная форма — только телефон. Обещание скорости: «перезвоним в течение дня», «проект на первом занятии».</p>
+      </div>
+
+      <div class="pattern-card">
+        <div class="icon" style="background: rgba(124,108,240,0.12);">&#128176;</div>
+        <h3>80% скрывают цены</h3>
+        <p>Только GeekSchool и KIBERone показывают цены открыто. GeekSchool компенсирует агрессивными скидками (до 65%) + маткапитал + налоговый вычет 13%.</p>
+      </div>
+
+      <div class="pattern-card">
+        <div class="icon" style="background: rgba(96,165,250,0.12);">&#127942;</div>
+        <h3>Социальные доказательства</h3>
+        <p>Масштаб (Алгоритмика: 1.1М), награды (KIBERone: ЮНЕСКО), партнёры (GeekSchool: Сбербанк, ВК), <span class="highlight">работы учеников</span> (Kodland, GeekSchool). Котокод может использовать бренд Просвещения.</p>
+      </div>
+
+      <div class="pattern-card">
+        <div class="icon" style="background: rgba(244,114,182,0.12);">&#129302;</div>
+        <h3>ИИ/нейросети — тренд рынка</h3>
+        <p>Выделены как отдельное направление у Алгоритмики, PIXEL, EasyCode, KIBERone. <span class="highlight">Котокод делает нейросети для детей</span> — это козырь, который можно позиционировать как core product.</p>
+      </div>
+
+      <div class="pattern-card">
+        <div class="icon" style="background: rgba(248,113,113,0.12);">&#128260;</div>
+        <h3>Модульная система > подписка</h3>
+        <p>KIBERone и Айтигенио показывают: непрерывное модульное обучение и пакетная модель повышают retention. Помесячная подписка проигрывает по удержанию.</p>
+      </div>
+
+    </div>
+  </div>
+</section>
+
+<!-- ═══════════ RECOMMENDATIONS ═══════════ -->
+<section>
+  <div class="container">
+    <h2 class="section-title">Рекомендации для Котокода</h2>
+    <p class="section-sub">10 конкретных шагов по улучшению воронки, лендинга и продукта</p>
+    <div class="recs">
+
+      <div class="rec-item">
+        <div class="rec-num">1</div>
+        <div class="rec-content">
+          <span class="rec-category cat-funnel">Воронка</span>
+          <h4>Упаковка бесплатного пробного</h4>
+          <p>На лендинге — яркий CTA «Бесплатное пробное занятие» с минимальной формой (только телефон). У всех лидеров это первое, что видит родитель.</p>
+        </div>
+      </div>
+
+      <div class="rec-item">
+        <div class="rec-num">2</div>
+        <div class="rec-content">
+          <span class="rec-category cat-funnel">Воронка</span>
+          <h4>Скорость обработки заявки</h4>
+          <p>«Перезвоним в течение 15 минут» (не дня). Отдел продаж пересобирается — шанс выстроить процесс с нуля по лучшим практикам.</p>
+        </div>
+      </div>
+
+      <div class="rec-item">
+        <div class="rec-num">3</div>
+        <div class="rec-content">
+          <span class="rec-category cat-funnel">Воронка</span>
+          <h4>Напоминания о пробном</h4>
+          <p>Цепочка SMS / WhatsApp / Telegram перед занятием (за 24 часа, за 1 час). Стандартная практика у лидеров рынка.</p>
+        </div>
+      </div>
+
+      <div class="rec-item">
+        <div class="rec-num">4</div>
+        <div class="rec-content">
+          <span class="rec-category cat-funnel">Воронка</span>
+          <h4>Промежуточный контент</h4>
+          <p>Между заявкой и пробным: видео-экскурсия, знакомство с преподавателем, мини-квиз для ребёнка. Снижает отвал до пробного.</p>
+        </div>
+      </div>
+
+      <div class="rec-item">
+        <div class="rec-num">5</div>
+        <div class="rec-content">
+          <span class="rec-category cat-landing">Лендинг</span>
+          <h4>Социальные доказательства</h4>
+          <p>Добавить конкретные цифры (количество выпускников, средний рейтинг), работы учеников, видео-отзывы — как у Kodland и GeekSchool.</p>
+        </div>
+      </div>
+
+      <div class="rec-item">
+        <div class="rec-num">6</div>
+        <div class="rec-content">
+          <span class="rec-category cat-landing">Лендинг</span>
+          <h4>Нейросети для детей — главное УТП</h4>
+          <p>Конкуренты только начинают добавлять ИИ-курсы. Котокод может позиционировать нейросети как core product, а не дополнение. Это тренд рынка.</p>
+        </div>
+      </div>
+
+      <div class="rec-item">
+        <div class="rec-num">7</div>
+        <div class="rec-content">
+          <span class="rec-category cat-landing">Лендинг</span>
+          <h4>Бренд Просвещения</h4>
+          <p>Крупнейший образовательный издатель РФ. Мощнейшее социальное доказательство, которое не использует ни один конкурент. «Котокод — от Просвещения» = доверие из школьного контекста.</p>
+        </div>
+      </div>
+
+      <div class="rec-item">
+        <div class="rec-num">8</div>
+        <div class="rec-content">
+          <span class="rec-category cat-landing">Лендинг</span>
+          <h4>Маткапитал + налоговый вычет</h4>
+          <p>Если есть лицензия — обязательно указать на лендинге. GeekSchool активно использует это для снижения финансового барьера входа.</p>
+        </div>
+      </div>
+
+      <div class="rec-item">
+        <div class="rec-num">9</div>
+        <div class="rec-content">
+          <span class="rec-category cat-product">Продукт</span>
+          <h4>Результат на первом занятии</h4>
+          <p>EasyCode обещает «проект на первом занятии». Котокод может: ребёнок уходит с пробного с готовым мини-проектом — нейросеть, которая рисует. WOW-эффект.</p>
+        </div>
+      </div>
+
+      <div class="rec-item">
+        <div class="rec-num">10</div>
+        <div class="rec-content">
+          <span class="rec-category cat-product">Продукт</span>
+          <h4>Модульная система вместо подписки</h4>
+          <p>KIBERone и Айтигенио показывают: непрерывное модульное обучение повышает retention. Переход на модули/пакеты вместо помесячной подписки.</p>
+        </div>
+      </div>
+
+    </div>
+
+    <!-- Conversion targets -->
+    <div class="conv-table">
+      <table>
+        <thead>
+          <tr>
+            <th>Метрика</th>
+            <th style="text-align:center">Текущая</th>
+            <th style="text-align:center"></th>
+            <th style="text-align:center">Целевая (дек)</th>
+            <th>За счёт чего</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td class="school-name">CR Lead &rarr; Пробное</td>
+            <td style="text-align:center"><span class="conv-current">20%</span></td>
+            <td style="text-align:center"><span class="conv-arrow">&rarr;</span></td>
+            <td style="text-align:center"><span class="conv-target">35%</span></td>
+            <td style="white-space:normal">Упаковка CTA, скорость обработки, напоминания, промежуточный контент</td>
+          </tr>
+          <tr>
+            <td class="school-name">CR Пробное &rarr; Оплата</td>
+            <td style="text-align:center"><span class="conv-current">30%</span></td>
+            <td style="text-align:center"><span class="conv-arrow">&rarr;</span></td>
+            <td style="text-align:center"><span class="conv-target">35%</span></td>
+            <td style="white-space:normal">Результат на первом занятии, нейросети как WOW-фактор, новый отдел продаж</td>
+          </tr>
+        </tbody>
+      </table>
+      <div style="padding: 16px 20px; font-size: 13px; color: var(--text2);">
+        Рост CR Lead &rarr; Пробное с 20% до 35% &mdash; <span class="highlight">консервативный</span>. Бенчмарк рынка 60&ndash;70%. При внедрении всех рекомендаций реально достижимы 40&ndash;50%, но в МП закладываем 35% как реалистичный сценарий.
+      </div>
+    </div>
+
+  </div>
+</section>
+
+<!-- ═══════════ FOOTER ═══════════ -->
+<div class="footer">
+  <div class="container">
+    <p>Подготовлено <a href="#">uForce</a> для проекта Котокод</p>
+  </div>
+</div>
+
+</body>
+</html>
